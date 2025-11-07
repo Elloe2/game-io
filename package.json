@@ -1,0 +1,25 @@
+{
+  "name": "agar-io-clone",
+  "version": "1.0.0",
+  "description": "Multiplayer agar.io clone game",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js"
+  },
+  "keywords": [
+    "game",
+    "multiplayer",
+    "agar.io",
+    "websocket"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.6.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

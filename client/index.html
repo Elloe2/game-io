@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Micro.io - Bakteri vs Bakteri</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="game-container">
+      <div class="ui-overlay">
+        <div class="score-board">
+          <h2>Skor: <span id="score">0</span></h2>
+          <h3>Sel: <span id="cells">1</span></h3>
+          <h3>Ukuran: <span id="size">15</span>px</h3>
+        </div>
+        <div class="leaderboard">
+          <h3>Peringkat Tertinggi</h3>
+          <div id="leaderboard-list"></div>
+        </div>
+        <div class="instructions">
+          <p>Gerakkan mouse untuk mengontrol bakteri Anda</p>
+          <p>Makan bakteri kecil untuk tumbuh lebih besar</p>
+          <p>Tekan SPACE untuk membelah diri</p>
+          <p>Hindari NPC AI yang lebih besar!</p>
+          <p style="color: #4caf50; font-weight: bold">Mode Offline: Hanya Anda vs NPC AI</p>
+        </div>
+      </div>
+      <canvas id="gameCanvas"></canvas>
+      <div class="start-screen" id="startScreen">
+        <h1 class="game-title">Micro.io</h1>
+        <p class="game-subtitle">Dunia Mikroskopis Bakteri</p>
+        <p class="game-mode">Mode: Offline (Player vs AI)</p>
+        <input type="text" id="playerName" placeholder="Masukkan nama bakteri Anda" maxlength="15" />
+        <button id="startBtn">Mulai Bermain</button>
+        <div class="highscore-section">
+          <h3>Skor Tertinggi</h3>
+          <div id="highscore-list"></div>
+        </div>
+      </div>
+      <div class="game-over-screen hidden" id="gameOverScreen">
+        <h2>Bakteri Anda Dimakan!</h2>
+        <p>Skor Akhir: <span id="finalScore">0</span></p>
+        <button id="playAgainBtn">Main Lagi</button>
+      </div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="game.js"></script>
+  </body>
+</html>
