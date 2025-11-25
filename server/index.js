@@ -53,11 +53,15 @@ const bacteriaNames = [
   'Archaebacteria',
 ];
 
+// Food types for sprites
+const foodTypes = ['air', 'enzim', 'daun'];
+
 // Generate random food dengan nama bakteri
 function generateFood() {
   const foods = [];
   for (let i = 0; i < gameState.maxFood; i++) {
     const name = bacteriaNames[Math.floor(Math.random() * bacteriaNames.length)];
+    const foodType = foodTypes[Math.floor(Math.random() * foodTypes.length)];
     foods.push({
       id: i,
       x: Math.random() * gameState.worldSize,
@@ -65,6 +69,7 @@ function generateFood() {
       radius: 4 + Math.random() * 3,
       color: `hsl(${Math.random() * 360}, 70%, ${50 + Math.random() * 20}%)`,
       name: name,
+      foodType: foodType,
     });
   }
   return foods;
@@ -76,6 +81,7 @@ gameState.foods = generateFood();
 // Spawn new food when eaten
 function spawnFood() {
   const name = bacteriaNames[Math.floor(Math.random() * bacteriaNames.length)];
+  const foodType = foodTypes[Math.floor(Math.random() * foodTypes.length)];
   const newFood = {
     id: Date.now() + Math.random(),
     x: Math.random() * gameState.worldSize,
@@ -83,6 +89,7 @@ function spawnFood() {
     radius: 4 + Math.random() * 3,
     color: `hsl(${Math.random() * 360}, 70%, ${50 + Math.random() * 20}%)`,
     name: name,
+    foodType: foodType,
   };
   gameState.foods.push(newFood);
   return newFood;
@@ -140,6 +147,9 @@ const npcNames = [
   'Amoeba', 'Paramecium', 'Euglena', 'Plasmodium', 'Giardia'
 ];
 
+// NPC types for sprites
+const npcTypes = ['virus', 'bacillus'];
+
 // NPC AI Logic - Enhanced with smarter behavior and competition
 function createNPC() {
   const npcId = `npc_${Date.now()}_${Math.random()}`;
@@ -153,6 +163,9 @@ function createNPC() {
   const randomName = npcNames[Math.floor(Math.random() * npcNames.length)];
   const nameWithNumber = Math.random() > 0.5 ? `${randomName}${Math.floor(Math.random() * 100)}` : randomName;
   
+  // Pick random NPC type for sprite
+  const npcType = npcTypes[Math.floor(Math.random() * npcTypes.length)];
+  
   const npc = {
     id: npcId,
     x: Math.random() * gameState.worldSize,
@@ -163,6 +176,7 @@ function createNPC() {
     name: nameWithNumber,
     target: null,
     isNPC: true,
+    npcType: npcType, // 'virus' or 'bacillus' for sprite selection
     cells: [], // Will be initialized on first split
     lastDecision: Date.now(),
     aggressionLevel: aggressionLevel, // Higher = more likely to hunt
@@ -1228,51 +1242,58 @@ initializeNPCs();
 
 // Socket.io connection handling - OFFLINE MODE: Single Player Only
 io.on('connection', (socket) => {
-  // Check if there's already a player (offline mode - only 1 player)
-  const currentPlayerCount = Object.keys(gameState.players).length;
-
-  if (currentPlayerCount >= gameState.maxPlayers) {
-    console.log('Game is full (offline mode - single player only). Rejecting:', socket.id);
-    socket.emit('gameFull', { message: 'Game is full. This is an offline single-player game.' });
-    socket.disconnect();
-    return;
-  }
-
-  console.log('Player connected (Offline Mode):', socket.id);
-
-  // Reset game world for fresh start
-  console.log('Resetting game world for new player...');
-  resetGameWorld();
-
-  // Create new player
-  const player = {
-    id: socket.id,
-    x: Math.random() * gameState.worldSize,
-    y: Math.random() * gameState.worldSize,
-    radius: 15,
-    color: `hsl(${Math.random() * 360}, 70%, 50%)`,
-    score: 0,
-    name: `Bakteri ${socket.id.substring(0, 5)}`,
-  };
-
-  gameState.players[socket.id] = player;
-
-  // Send initial game state
-  socket.emit('init', {
-    player: player,
-    worldSize: gameState.worldSize,
-  });
-
-  // Send current game state (only this player's data in offline mode)
-  socket.emit('gameState', {
-    players: gameState.players, // Only contains this player
-    npcs: gameState.npcs,
-    foods: gameState.foods,
-    isOfflineMode: true, // Flag to indicate offline mode
-  });
-
-  // Send highscores
+  console.log('Client connected:', socket.id);
+  
+  // Send highscores immediately (for menu display)
   socket.emit('highscores', highscores.slice(0, 10));
+  
+  // Handle start game request - only create player when user clicks START
+  socket.on('startGame', (data) => {
+    // Check if there's already a player (offline mode - only 1 player)
+    const currentPlayerCount = Object.keys(gameState.players).length;
+
+    if (currentPlayerCount >= gameState.maxPlayers) {
+      console.log('Game is full (offline mode - single player only). Rejecting:', socket.id);
+      socket.emit('gameFull', { message: 'Game is full. This is an offline single-player game.' });
+      return;
+    }
+
+    console.log('Player starting game (Offline Mode):', socket.id);
+
+    // Reset game world for fresh start
+    console.log('Resetting game world for new player...');
+    resetGameWorld();
+
+    // Create new player
+    const playerName = data.name || `Bakteri ${socket.id.substring(0, 5)}`;
+    const player = {
+      id: socket.id,
+      x: Math.random() * gameState.worldSize,
+      y: Math.random() * gameState.worldSize,
+      radius: 15,
+      color: `hsl(${Math.random() * 360}, 70%, 50%)`,
+      score: 0,
+      name: playerName,
+    };
+
+    gameState.players[socket.id] = player;
+
+    // Send initial game state
+    socket.emit('init', {
+      player: player,
+      worldSize: gameState.worldSize,
+    });
+
+    // Send current game state (only this player's data in offline mode)
+    socket.emit('gameState', {
+      players: gameState.players, // Only contains this player
+      npcs: gameState.npcs,
+      foods: gameState.foods,
+      isOfflineMode: true, // Flag to indicate offline mode
+    });
+    
+    console.log(`Player ${playerName} joined the game!`);
+  });
 
   // Handle player movement - all cells move together
   socket.on('move', (data) => {
@@ -1403,7 +1424,12 @@ io.on('connection', (socket) => {
 });
 
 // Game loop - update NPCs and broadcast game state (higher frequency for smoother movement)
+// Only runs when there are active players
 setInterval(() => {
+  // Only run game logic if there are players
+  const hasPlayers = Object.keys(gameState.players).length > 0;
+  if (!hasPlayers) return;
+  
   updateNPCs();
 
   // Maintain food count - ensure there's always enough food
@@ -1433,7 +1459,11 @@ setInterval(() => {
 }, 33); // ~30 FPS (33ms) for smoother updates
 
 // Auto-spawn food periodically to ensure continuous food supply
+// Only runs when there are active players
 setInterval(() => {
+  const hasPlayers = Object.keys(gameState.players).length > 0;
+  if (!hasPlayers) return;
+  
   maintainFoodCount();
   // Spawn extra food if count is low
   if (gameState.foods.length < gameState.maxFood * 0.7) {

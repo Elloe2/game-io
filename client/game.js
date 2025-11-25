@@ -38,6 +38,36 @@ let mouse = { x: 0, y: 0 };
 let playerName = '';
 let gameStarted = false;
 let lastUpdateTime = Date.now();
+let highScoreValue = 0;
+
+// Sprite images
+const sprites = {
+  player: new Image(),
+  npcVirus: new Image(),
+  npcBacillus: new Image(),
+  foodAir: new Image(),
+  foodEnzim: new Image(),
+  foodDaun: new Image(),
+};
+
+// Load sprites
+sprites.player.src = 'assets/Microba Alga.png';
+sprites.npcVirus.src = 'assets/Virus HIV.png';
+sprites.npcBacillus.src = 'assets/Bakteri Bacillus.png';
+sprites.foodAir.src = 'assets/Air.png';
+sprites.foodEnzim.src = 'assets/Enzim.png';
+sprites.foodDaun.src = 'assets/Daun Mati.png';
+
+// Track loaded sprites
+let spritesLoaded = 0;
+const totalSprites = Object.keys(sprites).length;
+
+Object.values(sprites).forEach(sprite => {
+  sprite.onload = () => {
+    spritesLoaded++;
+    console.log(`Sprite loaded: ${spritesLoaded}/${totalSprites}`);
+  };
+});
 
 // Start screen elements
 const startScreen = document.getElementById('startScreen');
@@ -46,10 +76,225 @@ const playerNameInput = document.getElementById('playerName');
 const gameOverScreen = document.getElementById('gameOverScreen');
 const playAgainBtn = document.getElementById('playAgainBtn');
 
+// Loading Screen Animation
+function initLoadingScreen() {
+  const loadingScreen = document.getElementById('loadingScreen');
+  const loaderProgress = document.getElementById('loaderProgress');
+  
+  let progress = 0;
+  const loadInterval = setInterval(() => {
+    progress += Math.random() * 15;
+    if (progress >= 100) {
+      progress = 100;
+      clearInterval(loadInterval);
+      
+      // Hide loading screen with animation
+      gsap.to(loadingScreen, {
+        opacity: 0,
+        duration: 0.5,
+        delay: 0.3,
+        onComplete: () => {
+          loadingScreen.style.display = 'none';
+          initMenuAnimations();
+        }
+      });
+    }
+    loaderProgress.style.width = progress + '%';
+  }, 100);
+}
+
+// GSAP Animations for Main Menu
+function initMenuAnimations() {
+  const heroContent = document.querySelector('.hero-content');
+  const titleLines = document.querySelectorAll('.title-line');
+  const titleDot = document.querySelector('.title-dot');
+  const subtitle = document.querySelector('.subtitle');
+  const heroVisual = document.querySelector('.hero-visual');
+  const scrollIndicator = document.querySelector('.scroll-indicator');
+  
+  // Initial state
+  gsap.set(titleLines, { opacity: 0, y: 50 });
+  gsap.set(titleDot, { opacity: 0, scale: 0 });
+  gsap.set(subtitle, { opacity: 0, y: 20 });
+  gsap.set(heroVisual, { opacity: 0, scale: 0.8 });
+  gsap.set(scrollIndicator, { opacity: 0 });
+  
+  // Timeline for hero section
+  const tl = gsap.timeline({ delay: 0.3 });
+  
+  // Title lines animate in
+  tl.to(titleLines, {
+    opacity: 1,
+    y: 0,
+    duration: 0.8,
+    stagger: 0.1,
+    ease: 'power3.out'
+  });
+  
+  // Dot pops in
+  tl.to(titleDot, {
+    opacity: 1,
+    scale: 1,
+    duration: 0.4,
+    ease: 'back.out(2)'
+  }, '-=0.5');
+  
+  // Subtitle fades in
+  tl.to(subtitle, {
+    opacity: 1,
+    y: 0,
+    duration: 0.5,
+    ease: 'power2.out'
+  }, '-=0.3');
+  
+  // Hero visual scales in
+  tl.to(heroVisual, {
+    opacity: 1,
+    scale: 1,
+    duration: 0.8,
+    ease: 'power2.out'
+  }, '-=0.3');
+  
+  // Scroll indicator fades in
+  tl.to(scrollIndicator, {
+    opacity: 1,
+    duration: 0.5
+  }, '-=0.2');
+  
+  // Play section animations on scroll
+  initScrollAnimations();
+}
+
+// Scroll-triggered animations
+function initScrollAnimations() {
+  const playSection = document.getElementById('playSection');
+  const sectionHeading = document.querySelector('.section-heading');
+  const characterSelect = document.querySelector('.character-select');
+  const playForm = document.querySelector('.play-form');
+  const foodPreview = document.querySelector('.food-preview');
+  const instructionsBar = document.querySelector('.instructions-bar');
+  
+  // Initial state for play section elements
+  gsap.set([sectionHeading, characterSelect, playForm, foodPreview, instructionsBar], { 
+    opacity: 0, 
+    y: 50 
+  });
+  
+  // Create scroll trigger
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const tl = gsap.timeline();
+        
+        tl.to(sectionHeading, {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          ease: 'power2.out'
+        });
+        
+        tl.to([characterSelect, playForm, foodPreview], {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          stagger: 0.15,
+          ease: 'power2.out'
+        }, '-=0.3');
+        
+        tl.to(instructionsBar, {
+          opacity: 1,
+          y: 0,
+          duration: 0.5,
+          ease: 'power2.out'
+        }, '-=0.2');
+        
+        observer.disconnect();
+      }
+    });
+  }, { threshold: 0.3 });
+  
+  observer.observe(playSection);
+}
+
+// GSAP Animation for Game Over popup
+function showGameOverAnimation() {
+  const gameOverBg = document.querySelector('.game-over-bg');
+  const popup = document.querySelector('.game-over-popup');
+  const statCards = document.querySelectorAll('.stat-card');
+  const actionBtns = document.querySelectorAll('.action-btn');
+  
+  // Initial state
+  gsap.set(gameOverBg, { opacity: 0 });
+  gsap.set(popup, { scale: 0.8, opacity: 0, y: 50 });
+  gsap.set(statCards, { opacity: 0, y: 30, scale: 0.9 });
+  gsap.set(actionBtns, { opacity: 0, y: 20 });
+  
+  // Animation timeline
+  const tl = gsap.timeline();
+  
+  // Background fades in
+  tl.to(gameOverBg, {
+    opacity: 1,
+    duration: 0.3
+  });
+  
+  // Popup scales in
+  tl.to(popup, {
+    scale: 1,
+    opacity: 1,
+    y: 0,
+    duration: 0.5,
+    ease: 'back.out(1.7)'
+  }, '-=0.1');
+  
+  // Stat cards stagger in
+  tl.to(statCards, {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    duration: 0.4,
+    stagger: 0.1,
+    ease: 'power2.out'
+  }, '-=0.2');
+  
+  // Action buttons slide in
+  tl.to(actionBtns, {
+    opacity: 1,
+    y: 0,
+    duration: 0.4,
+    stagger: 0.1,
+    ease: 'power2.out'
+  }, '-=0.1');
+}
+
+// Initialize loading screen when page loads
+document.addEventListener('DOMContentLoaded', initLoadingScreen);
+
 startBtn.addEventListener('click', () => {
   playerName = playerNameInput.value || `Bakteri${Math.floor(Math.random() * 1000)}`;
-  socket.emit('nameChange', playerName);
-  startScreen.classList.add('hidden');
+  
+  // Send startGame event to server - this creates the player
+  socket.emit('startGame', { name: playerName });
+  
+  // GSAP exit animation for start screen
+  gsap.to(startScreen, {
+    opacity: 0,
+    scale: 1.1,
+    duration: 0.4,
+    ease: 'power2.in',
+    onComplete: () => {
+      startScreen.classList.add('hidden');
+      gsap.set(startScreen, { opacity: 1, scale: 1 }); // Reset for potential replay
+      
+      // Animate leaderboard sliding in
+      const leaderboard = document.querySelector('.leaderboard');
+      gsap.fromTo(leaderboard, 
+        { x: 100, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.6, ease: 'power2.out' }
+      );
+    }
+  });
+  
   gameStarted = true;
 });
 
@@ -62,6 +307,14 @@ playerNameInput.addEventListener('keypress', (e) => {
 playAgainBtn.addEventListener('click', () => {
   location.reload();
 });
+
+// Home button handler
+const homeBtn = document.getElementById('homeBtn');
+if (homeBtn) {
+  homeBtn.addEventListener('click', () => {
+    location.reload();
+  });
+}
 
 // Socket events
 socket.on('gameFull', (data) => {
@@ -102,7 +355,22 @@ socket.on('gameState', (data) => {
 
 socket.on('eaten', (data) => {
   gameOverScreen.classList.remove('hidden');
-  document.getElementById('finalScore').textContent = data.score || 0;
+  const finalScore = data.score || 0;
+  document.getElementById('finalScore').textContent = finalScore;
+  
+  // Update high score
+  if (finalScore > highScoreValue) {
+    highScoreValue = finalScore;
+  }
+  document.getElementById('highScore').textContent = highScoreValue;
+  
+  // Calculate position (simplified - based on leaderboard)
+  const position = data.position || '-';
+  document.getElementById('topPosition').textContent = position;
+  
+  // Trigger GSAP game over animation
+  showGameOverAnimation();
+  
   gameStarted = false;
 
   // Clear game state when player dies
@@ -219,30 +487,169 @@ window.addEventListener('resize', () => {
   updateCamera();
 });
 
-// Draw bacteria-like shape
+// Animation time tracker
+let animationTime = 0;
+
+// Draw sprite image with animation
+function drawSprite(sprite, x, y, radius, scale = 1.0, animOptions = {}) {
+  if (sprite && sprite.complete && sprite.naturalWidth > 0) {
+    const drawSize = radius * 2 * scale;
+    
+    ctx.save();
+    ctx.translate(x, y);
+    
+    // Apply animations based on options
+    if (animOptions.rotate) {
+      const rotationSpeed = animOptions.rotateSpeed || 0.001;
+      ctx.rotate(animationTime * rotationSpeed + (animOptions.rotateOffset || 0));
+    }
+    
+    if (animOptions.pulse) {
+      const pulseAmount = animOptions.pulseAmount || 0.05;
+      const pulseSpeed = animOptions.pulseSpeed || 0.003;
+      const pulseFactor = 1 + Math.sin(animationTime * pulseSpeed + (animOptions.pulseOffset || 0)) * pulseAmount;
+      ctx.scale(pulseFactor, pulseFactor);
+    }
+    
+    if (animOptions.float) {
+      const floatAmount = animOptions.floatAmount || 3;
+      const floatSpeed = animOptions.floatSpeed || 0.002;
+      const floatY = Math.sin(animationTime * floatSpeed + (animOptions.floatOffset || 0)) * floatAmount;
+      ctx.translate(0, floatY);
+    }
+    
+    // Draw the sprite centered
+    ctx.drawImage(sprite, -drawSize/2, -drawSize/2, drawSize, drawSize);
+    
+    // Add glow effect if specified
+    if (animOptions.glow) {
+      ctx.globalAlpha = 0.3 + Math.sin(animationTime * 0.003) * 0.2;
+      ctx.shadowColor = animOptions.glowColor || '#00f0ff';
+      ctx.shadowBlur = animOptions.glowSize || 15;
+      ctx.drawImage(sprite, -drawSize/2, -drawSize/2, drawSize, drawSize);
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+    }
+    
+    ctx.restore();
+  } else {
+    // Fallback to circle if sprite not loaded
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fillStyle = '#4CAF50';
+    ctx.fill();
+  }
+}
+
+// Draw player (Microba Alga) with pulse and glow animation
+function drawPlayer(x, y, radius) {
+  drawSprite(sprites.player, x, y, radius, 1.3, {
+    pulse: true,
+    pulseAmount: 0.08,
+    pulseSpeed: 0.004,
+    glow: true,
+    glowColor: '#00ff88',
+    glowSize: 20
+  });
+}
+
+// Draw NPC based on type with animations
+function drawNPC(x, y, radius, npcType, playerRadius = 0, entityId = '') {
+  // Use entity ID to create unique animation offset
+  const idOffset = entityId ? entityId.charCodeAt(0) * 100 : Math.random() * 1000;
+  
+  if (npcType === 'bacillus') {
+    drawSprite(sprites.npcBacillus, x, y, radius, 1.8, {
+      rotate: true,
+      rotateSpeed: 0.0005,
+      rotateOffset: idOffset,
+      pulse: true,
+      pulseAmount: 0.06,
+      pulseSpeed: 0.003,
+      pulseOffset: idOffset
+    });
+  } else {
+    drawSprite(sprites.npcVirus, x, y, radius, 2.1, {
+      rotate: true,
+      rotateSpeed: 0.001,
+      rotateOffset: idOffset,
+      pulse: true,
+      pulseAmount: 0.05,
+      pulseSpeed: 0.004,
+      pulseOffset: idOffset
+    });
+  }
+  
+  // Draw danger/safe indicator based on size comparison with player
+  if (playerRadius > 0) {
+    const sizeRatio = radius / playerRadius;
+    if (sizeRatio > 1.03) {
+      // NPC is bigger - DANGER (red outline with pulse)
+      const pulseAlpha = 0.4 + Math.sin(animationTime * 0.005) * 0.2;
+      ctx.strokeStyle = `rgba(255, 50, 50, ${pulseAlpha})`;
+      ctx.lineWidth = 2 + Math.sin(animationTime * 0.005) * 1;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (sizeRatio < 0.97) {
+      // NPC is smaller - SAFE to eat (green outline with pulse)
+      const pulseAlpha = 0.4 + Math.sin(animationTime * 0.005) * 0.2;
+      ctx.strokeStyle = `rgba(50, 255, 50, ${pulseAlpha})`;
+      ctx.lineWidth = 2 + Math.sin(animationTime * 0.005) * 1;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+}
+
+// Draw food based on type with floating animation
+function drawFood(x, y, radius, foodType, foodId = '') {
+  let sprite;
+  let glowColor;
+  
+  // Use food ID for unique animation offset
+  const idOffset = foodId ? (typeof foodId === 'number' ? foodId : foodId.toString().charCodeAt(0)) * 50 : Math.random() * 500;
+  
+  switch (foodType) {
+    case 'air':
+      sprite = sprites.foodAir;
+      glowColor = '#00d4ff';
+      break;
+    case 'enzim':
+      sprite = sprites.foodEnzim;
+      glowColor = '#ff00ff';
+      break;
+    case 'daun':
+      sprite = sprites.foodDaun;
+      glowColor = '#ffaa00';
+      break;
+    default:
+      sprite = sprites.foodAir;
+      glowColor = '#00d4ff';
+  }
+  
+  drawSprite(sprite, x, y, radius, 3.0, {
+    float: true,
+    floatAmount: 2,
+    floatSpeed: 0.003,
+    floatOffset: idOffset,
+    rotate: true,
+    rotateSpeed: 0.0003,
+    rotateOffset: idOffset,
+    glow: true,
+    glowColor: glowColor,
+    glowSize: 8
+  });
+}
+
+// Legacy function for backward compatibility
 function drawBacteria(x, y, radius, color, isNPC = false) {
-  // Main circle
-  ctx.beginPath();
-  ctx.arc(x, y, radius, 0, Math.PI * 2);
-
-  // Gradient fill
-  const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
-  gradient.addColorStop(0, color);
-  gradient.addColorStop(1, isNPC ? 'rgba(0, 0, 0, 0.3)' : 'rgba(0, 0, 0, 0.2)');
-
-  ctx.fillStyle = gradient;
-  ctx.fill();
-
-  // Border
-  ctx.strokeStyle = isNPC ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.5)';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-
-  // Inner details (bacteria-like)
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-  ctx.beginPath();
-  ctx.arc(x - radius * 0.3, y - radius * 0.3, radius * 0.2, 0, Math.PI * 2);
-  ctx.fill();
+  if (isNPC) {
+    drawNPC(x, y, radius, 'virus');
+  } else {
+    drawPlayer(x, y, radius);
+  }
 }
 
 // Linear interpolation function
@@ -403,21 +810,24 @@ function drawText(text, x, y, size, color) {
 function render() {
   // Only render if game has started
   if (!gameStarted) {
-    // Clear canvas with dark background when not playing
-    ctx.fillStyle = '#0a0e27';
+    // Clear canvas with light background when not playing
+    ctx.fillStyle = '#f8f9fa';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     return;
   }
 
   // Interpolate positions for smooth movement
   interpolatePositions();
+  
+  // Update animation time
+  animationTime = Date.now();
 
-  // Clear canvas with microsopic background
-  ctx.fillStyle = '#1a3a52';
+  // Clear canvas with dark microscopic background (matches menu theme)
+  ctx.fillStyle = '#0d1117';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Draw grid background (microscopic view)
-  ctx.strokeStyle = 'rgba(76, 175, 80, 0.1)';
+  // Draw grid background (dark theme with cyan lines)
+  ctx.strokeStyle = 'rgba(0, 240, 255, 0.08)';
   ctx.lineWidth = 1;
   const gridSize = 50;
   for (let x = -gameState.camera.x % gridSize; x < canvas.width; x += gridSize) {
@@ -433,18 +843,34 @@ function render() {
     ctx.stroke();
   }
 
-  // Draw foods (bacteria/virus) - use interpolated state
+  // Draw foods with sprites and animations - use interpolated state
   interpolatedState.foods.forEach((food) => {
     const screenX = food.x - gameState.camera.x;
     const screenY = food.y - gameState.camera.y;
 
-    if (screenX > -food.radius && screenX < canvas.width + food.radius && screenY > -food.radius && screenY < canvas.height + food.radius) {
-      drawBacteria(screenX, screenY, food.radius, food.color, false);
+    if (screenX > -food.radius * 3 && screenX < canvas.width + food.radius * 3 && 
+        screenY > -food.radius * 3 && screenY < canvas.height + food.radius * 3) {
+      drawFood(screenX, screenY, food.radius, food.foodType || 'air', food.id);
     }
   });
 
+  // Get player's radius for size comparison
+  let myPlayerRadius = 0;
+  if (gameState.myPlayer && interpolatedState.players[gameState.myPlayer.id]) {
+    const myPlayer = interpolatedState.players[gameState.myPlayer.id];
+    if (myPlayer.cells && myPlayer.cells.length > 0) {
+      // Use smallest cell radius for safety comparison
+      myPlayerRadius = Math.min(...myPlayer.cells.map(c => c.radius));
+    } else {
+      myPlayerRadius = myPlayer.radius || 0;
+    }
+  }
+
   // Draw NPCs with all their cells - use interpolated state
   Object.values(interpolatedState.npcs).forEach((npc) => {
+    // Determine NPC type for sprite selection
+    const npcType = npc.npcType || 'virus';
+    
     // Draw all cells of the NPC (if split)
     if (npc.cells && npc.cells.length > 0) {
       // Find largest cell for name display
@@ -460,10 +886,10 @@ function render() {
         const screenX = cell.x - gameState.camera.x;
         const screenY = cell.y - gameState.camera.y;
 
-        if (screenX > -cell.radius && screenX < canvas.width + cell.radius && 
-            screenY > -cell.radius && screenY < canvas.height + cell.radius) {
-          // Draw NPC cell
-          drawBacteria(screenX, screenY, cell.radius, npc.color, true);
+        if (screenX > -cell.radius * 2 && screenX < canvas.width + cell.radius * 2 && 
+            screenY > -cell.radius * 2 && screenY < canvas.height + cell.radius * 2) {
+          // Draw NPC cell with sprite, size indicator, and animation
+          drawNPC(screenX, screenY, cell.radius, npcType, myPlayerRadius, npc.id);
         }
       });
 
@@ -472,22 +898,22 @@ function render() {
       const screenY = largestCell.y - gameState.camera.y;
       if (npc.name) {
         const fontSize = Math.max(12, largestCell.radius / 2.5);
-        drawText(npc.name, screenX, screenY - largestCell.radius - fontSize / 2, fontSize, '#ffaa00');
+        drawText(npc.name, screenX, screenY - largestCell.radius - fontSize / 2, fontSize, '#00f0ff');
       }
     } else {
       // Single cell NPC (not split yet)
       const screenX = npc.x - gameState.camera.x;
       const screenY = npc.y - gameState.camera.y;
 
-      if (screenX > -npc.radius && screenX < canvas.width + npc.radius && 
-          screenY > -npc.radius && screenY < canvas.height + npc.radius) {
-        // Draw NPC bacteria
-        drawBacteria(screenX, screenY, npc.radius, npc.color, true);
+      if (screenX > -npc.radius * 2 && screenX < canvas.width + npc.radius * 2 && 
+          screenY > -npc.radius * 2 && screenY < canvas.height + npc.radius * 2) {
+        // Draw NPC with sprite, size indicator, and animation
+        drawNPC(screenX, screenY, npc.radius, npcType, myPlayerRadius, npc.id);
 
         // Draw NPC name
         if (npc.name) {
           const fontSize = Math.max(12, npc.radius / 2.5);
-          drawText(npc.name, screenX, screenY - npc.radius - fontSize / 2, fontSize, '#ffaa00');
+          drawText(npc.name, screenX, screenY - npc.radius - fontSize / 2, fontSize, '#00f0ff');
         }
       }
     }
@@ -513,32 +939,24 @@ function render() {
         const screenX = cell.x - gameState.camera.x;
         const screenY = cell.y - gameState.camera.y;
 
-        if (screenX > -cell.radius && screenX < canvas.width + cell.radius && screenY > -cell.radius && screenY < canvas.height + cell.radius) {
-          // Draw cell bacteria
-          drawBacteria(screenX, screenY, cell.radius, player.color, false);
+        if (screenX > -cell.radius * 2 && screenX < canvas.width + cell.radius * 2 && 
+            screenY > -cell.radius * 2 && screenY < canvas.height + cell.radius * 2) {
+          // Draw player cell with sprite
+          drawPlayer(screenX, screenY, cell.radius);
 
-          // Highlight my player's cells
-          if (isMyPlayer) {
-            ctx.strokeStyle = '#4CAF50';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(screenX, screenY, cell.radius + 2, 0, Math.PI * 2);
-            ctx.stroke();
-
-            // Show merge countdown if cell has mergeTime
-            if (cell.mergeTime) {
-              const timeLeft = Math.max(0, Math.ceil((cell.mergeTime - Date.now()) / 1000));
-              if (timeLeft > 0) {
-                const fontSize = Math.max(10, cell.radius / 3);
-                drawText(`${timeLeft}s`, screenX, screenY + cell.radius + fontSize, fontSize, '#FFD700');
-              }
+          // Show merge countdown if cell has mergeTime
+          if (isMyPlayer && cell.mergeTime) {
+            const timeLeft = Math.max(0, Math.ceil((cell.mergeTime - Date.now()) / 1000));
+            if (timeLeft > 0) {
+              const fontSize = Math.max(10, cell.radius / 3);
+              drawText(`${timeLeft}s`, screenX, screenY + cell.radius + fontSize, fontSize, '#FFD700');
             }
           }
 
           // Draw player name only on largest cell
           if (player.name && index === largestIndex) {
             const fontSize = Math.max(14, cell.radius / 2);
-            drawText(player.name, screenX, screenY - cell.radius - fontSize / 2, fontSize, '#fff');
+            drawText(player.name, screenX, screenY - cell.radius - fontSize / 2, fontSize, '#FFD700');
           }
         }
       });
@@ -547,20 +965,14 @@ function render() {
       const screenX = player.x - gameState.camera.x;
       const screenY = player.y - gameState.camera.y;
 
-      if (screenX > -player.radius && screenX < canvas.width + player.radius && screenY > -player.radius && screenY < canvas.height + player.radius) {
-        drawBacteria(screenX, screenY, player.radius, player.color, false);
-
-        if (isMyPlayer) {
-          ctx.strokeStyle = '#4CAF50';
-          ctx.lineWidth = 3;
-          ctx.beginPath();
-          ctx.arc(screenX, screenY, player.radius + 3, 0, Math.PI * 2);
-          ctx.stroke();
-        }
+      if (screenX > -player.radius * 2 && screenX < canvas.width + player.radius * 2 && 
+          screenY > -player.radius * 2 && screenY < canvas.height + player.radius * 2) {
+        // Draw player with sprite
+        drawPlayer(screenX, screenY, player.radius);
 
         if (player.name) {
           const fontSize = Math.max(14, player.radius / 2);
-          drawText(player.name, screenX, screenY - player.radius - fontSize / 2, fontSize, '#fff');
+          drawText(player.name, screenX, screenY - player.radius - fontSize / 2, fontSize, '#FFD700');
         }
       }
     }
@@ -588,23 +1000,6 @@ function updateUI() {
   const player = gameState.players[gameState.myPlayer.id];
   if (!player) return;
 
-  document.getElementById('score').textContent = player.score || 0;
-
-  // Count cells
-  const cellCount = player.cells ? player.cells.length : 1;
-  document.getElementById('cells').textContent = cellCount;
-
-  // Show largest cell size
-  let largestRadius = player.radius;
-  if (player.cells && player.cells.length > 0) {
-    player.cells.forEach((cell) => {
-      if (cell.radius > largestRadius) {
-        largestRadius = cell.radius;
-      }
-    });
-  }
-  document.getElementById('size').textContent = Math.floor(largestRadius);
-
   // Update leaderboard (only show player and NPCs in offline mode)
   const allEntities = [...Object.values(gameState.players), ...Object.values(gameState.npcs)];
 
@@ -619,8 +1014,8 @@ function updateUI() {
     if (entity.id === gameState.myPlayer.id) {
       item.classList.add('you');
     }
-    const prefix = entity.isNPC ? '🤖 ' : '👤 ';
-    item.textContent = `${index + 1}. ${prefix}${entity.name} - ${entity.score}`;
+    // Simple format like prototype: "1.Enemy1"
+    item.textContent = `${index + 1}.${entity.name}`;
     leaderboardList.appendChild(item);
   });
 }
