@@ -136,73 +136,148 @@ http://localhost:3000
 
 ## 🧠 NPC AI System
 
-NPC dalam game ini memiliki AI yang:
+NPC dalam game ini memiliki AI canggih:
 
-- **Mengejar makanan** terdekat untuk tumbuh
-- **Mengejar player kecil** untuk dimakan
-- **Menghindar dari ancaman** (player yang lebih besar)
-- **Berpartisipasi aktif** dalam kompetisi
+| Behavior | Deskripsi |
+|----------|-----------|
+| **Food Seeking** | Mengejar makanan terdekat untuk tumbuh |
+| **Hunting** | Mengejar player/NPC yang lebih kecil |
+| **Fleeing** | Menghindar dari ancaman yang lebih besar |
+| **Split Decision** | Membelah diri untuk menyerang atau kabur |
+| **Competition** | Berpartisipasi aktif dalam leaderboard |
 
 ## ⚡ Fitur Split/Duplicate
 
-- Tekan **SPACE** untuk membelah diri menjadi 2 bagian
-- Hanya bisa dilakukan jika ukuran minimal 30px
-- Sel yang terbelah akan otomatis merge kembali setelah 30 detik
-- Berguna untuk menghindar atau menyerang!
+| Aspek | Detail |
+|-------|--------|
+| **Trigger** | Tekan SPACE |
+| **Minimum Size** | 30px radius |
+| **Merge Time** | 30 detik otomatis merge |
+| **Kegunaan** | Menyerang atau menghindar |
+
+## 🎨 Visual Theme
+
+### Color Palette
+| Warna | Hex | Kegunaan |
+|-------|-----|----------|
+| **Cyan** | `#00f0ff` | Primary accent, glow effects |
+| **Magenta** | `#ff00aa` | Secondary accent, buttons |
+| **Dark BG** | `#0d1117` | Background utama |
+| **Dark Surface** | `#161b22` | Cards, panels |
+
+### Typography
+- **Orbitron** - Judul dan heading (futuristic)
+- **Rajdhani** - Body text dan UI elements
 
 ## 📁 Struktur Project
 
 ```
 micro-io/
 ├── client/
-│   ├── index.html      # HTML utama dengan UI Bahasa Indonesia
-│   ├── style.css       # Styling tema bakteri/mikroskopis
-│   └── game.js         # Game client logic dengan visual bakteri
+│   ├── index.html          # HTML dengan modern UI layout
+│   ├── style.css           # Dark neon theme styling
+│   ├── game.js             # Game client dengan animasi
+│   └── assets/
+│       ├── player.png      # Player sprite
+│       ├── npc-virus.png   # NPC virus sprite
+│       ├── npc-bacillus.png# NPC bacillus sprite
+│       ├── food-air.png    # Food air sprite
+│       ├── food-enzim.png  # Food enzim sprite
+│       └── food-daun.png   # Food daun sprite
 ├── server/
-│   └── index.js        # Game server dengan NPC AI dan split mechanics
-├── package.json        # Dependencies
-├── .gitignore          # Git ignore file
-└── README.md           # Dokumentasi ini
+│   └── index.js            # Game server dengan NPC AI
+├── package.json            # Dependencies
+├── .gitignore              # Git ignore file
+└── README.md               # Dokumentasi ini
 ```
-
-## 🎨 Visual & Theme
-
-Game menggunakan tema mikroskopis dengan:
-
-- Background biru gelap seperti slide mikroskop
-- Grid pattern untuk efek mikroskopis
-- Bakteri dengan gradient dan shadow untuk efek 3D
-- Warna hijau (#4CAF50) sebagai tema utama
-- NPC ditandai dengan indicator khusus
 
 ## 📊 Highscore System
 
-- Menyimpan top 10 skor tertinggi
-- Tersimpan di memory (bisa di-upgrade ke database)
-- Ditampilkan di start screen dan update real-time
+| Fitur | Detail |
+|-------|--------|
+| **Kapasitas** | Top 10 skor tertinggi |
+| **Storage** | In-memory (upgradable ke database) |
+| **Display** | Start screen & real-time update |
+| **Persistence** | Reset saat server restart |
+
+## 🖼️ Screenshots
+
+### Loading Screen
+- Animasi mikroba floating
+- Progress bar dengan efek glow
+- Dark neon theme
+
+### Main Menu
+- Hero section dengan judul animasi
+- Floating microbes background
+- Preview karakter dan makanan
+- Scrollable content
+
+### In-Game
+- Dark background dengan cyan grid
+- Animated sprites (pulse, rotate, float, glow)
+- Danger/safe indicator pada NPC
+- Real-time leaderboard
+
+### Game Over
+- Popup dengan statistik
+- Animasi entrance
+- Tombol Play Again & Home
 
 ## 🔮 Pengembangan Lebih Lanjut
 
-Ide untuk fitur tambahan:
-
-- [ ] Database untuk menyimpan highscore secara permanen
-- [ ] Sistem room/arena (multiple game rooms)
+### Planned Features
+- [ ] Database untuk highscore permanen
+- [ ] Multiple game rooms/arena
 - [ ] Power-ups (speed boost, shield, dll)
 - [ ] Chat system antar player
 - [ ] Spectator mode
-- [ ] Team mode (bermain dalam tim)
-- [ ] Variasi bakteri dengan kemampuan khusus
-- [ ] Skin/customization untuk bakteri
-- [ ] Sound effects dan background music scientist vibe
+- [ ] Team mode
+- [ ] Sound effects & background music
+- [ ] More sprite variations
+- [ ] Particle effects
+
+### Completed Features
+- [x] Modern UI redesign
+- [x] GSAP animations
+- [x] Loading screen
+- [x] Sprite assets
+- [x] In-game animations
+- [x] Dark neon theme
+- [x] Danger/safe indicators
+
+## 🐛 Known Issues
+
+- Game loop hanya berjalan saat ada player aktif
+- Highscore reset saat server restart
+- Mobile touch controls masih basic
 
 ## 📝 License
 
-MIT License
+MIT License - Feel free to use and modify!
 
 ## 👨‍💻 Kontribusi
 
-Game ini dibuat sebagai proyek pembelajaran game multiplayer dengan real-time networking. Silakan fork dan kembangkan sesuai kebutuhan!
+Game ini dibuat sebagai proyek pembelajaran game multiplayer dengan:
+- Real-time networking (Socket.io)
+- Modern UI/UX design
+- Canvas game development
+- GSAP animations
+
+Silakan fork dan kembangkan sesuai kebutuhan!
+
+## 🙏 Credits
+
+- **GSAP** - Animation library
+- **Socket.io** - Real-time communication
+- **Google Fonts** - Orbitron & Rajdhani
 
 ---
 
-**Selamat Bermain Micro.io! 🦠💚**
+<div align="center">
+
+**🦠 Selamat Bermain Micro.io! 🦠**
+
+Made with 💚 and ☕
+
+</div>
