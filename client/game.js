@@ -580,26 +580,30 @@ function drawNPC(x, y, radius, npcType, playerRadius = 0, entityId = '') {
     });
   }
   
-  // Draw danger/safe indicator based on size comparison with player
+  // Draw indicator based on size comparison with player
+  // GREEN = you can eat this NPC (player is bigger)
+  // RED = this NPC can eat you (NPC is bigger)
   if (playerRadius > 0) {
-    const sizeRatio = radius / playerRadius;
-    if (sizeRatio > 1.03) {
-      // NPC is bigger - DANGER (red outline with pulse)
-      const pulseAlpha = 0.4 + Math.sin(animationTime * 0.005) * 0.2;
-      ctx.strokeStyle = `rgba(255, 50, 50, ${pulseAlpha})`;
-      ctx.lineWidth = 2 + Math.sin(animationTime * 0.005) * 1;
-      ctx.beginPath();
-      ctx.arc(x, y, radius, 0, Math.PI * 2);
-      ctx.stroke();
-    } else if (sizeRatio < 0.97) {
-      // NPC is smaller - SAFE to eat (green outline with pulse)
-      const pulseAlpha = 0.4 + Math.sin(animationTime * 0.005) * 0.2;
+    const playerToNpcRatio = playerRadius / radius; // How much bigger is player?
+    
+    if (playerToNpcRatio > 1.03) {
+      // Player is bigger - GREEN (you CAN eat this NPC!)
+      const pulseAlpha = 0.5 + Math.sin(animationTime * 0.006) * 0.3;
       ctx.strokeStyle = `rgba(50, 255, 50, ${pulseAlpha})`;
-      ctx.lineWidth = 2 + Math.sin(animationTime * 0.005) * 1;
+      ctx.lineWidth = 3 + Math.sin(animationTime * 0.006) * 1.5;
       ctx.beginPath();
-      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.arc(x, y, radius + 5, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (playerToNpcRatio < 0.97) {
+      // NPC is bigger - RED (DANGER! NPC can eat you!)
+      const pulseAlpha = 0.5 + Math.sin(animationTime * 0.008) * 0.3;
+      ctx.strokeStyle = `rgba(255, 50, 50, ${pulseAlpha})`;
+      ctx.lineWidth = 3 + Math.sin(animationTime * 0.008) * 1.5;
+      ctx.beginPath();
+      ctx.arc(x, y, radius + 5, 0, Math.PI * 2);
       ctx.stroke();
     }
+    // If similar size (0.97 - 1.03), no indicator - cannot eat each other
   }
 }
 

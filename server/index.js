@@ -278,15 +278,16 @@ function updateNPC(npc) {
   let threats = [];
   let safeDirection = { x: 0, y: 0 };
 
-  // Check player threats
+  // Check player threats - FLEE if player is bigger!
   Object.values(gameState.players).forEach((player) => {
     const playerPos = getPlayerMainPosition(player);
     const dist = distance(npc.x, npc.y, playerPos.x, playerPos.y);
     const sizeDiff = player.radius / npc.radius;
 
-    if (sizeDiff > 1.1) {
-      // This is a threat
-      const threatLevel = sizeDiff * (400 / Math.max(dist, 50)); // Closer = more dangerous
+    // Player is bigger by just 3% - RUN AWAY!
+    if (sizeDiff > 1.03) {
+      // Higher threat level = more urgent to flee
+      const threatLevel = sizeDiff * sizeDiff * (600 / Math.max(dist, 30)); // Much higher threat awareness
       threats.push({
         entity: player,
         type: 'player',
@@ -296,7 +297,7 @@ function updateNPC(npc) {
         y: playerPos.y,
       });
 
-      // Calculate escape direction
+      // Calculate escape direction - run AWAY from player
       const dx = npc.x - playerPos.x;
       const dy = npc.y - playerPos.y;
       const escapeDist = Math.sqrt(dx * dx + dy * dy);
@@ -307,16 +308,17 @@ function updateNPC(npc) {
     }
   });
 
-  // Check NPC threats (other NPCs that are bigger)
+  // Check NPC threats (other NPCs that are bigger) - SAME AS PLAYER THREAT
   Object.values(gameState.npcs).forEach((otherNPC) => {
     if (otherNPC.id === npc.id) return; // Skip self
     
     const dist = distance(npc.x, npc.y, otherNPC.x, otherNPC.y);
     const sizeDiff = otherNPC.radius / npc.radius;
 
-    if (sizeDiff > 1.12) {
-      // This NPC is a threat (reduced from 1.15 to 1.12 for more awareness)
-      const threatLevel = sizeDiff * (350 / Math.max(dist, 50));
+    // Other NPC is bigger by 3% - FLEE! (same threshold as player)
+    if (sizeDiff > 1.03) {
+      // Same threat level calculation as player
+      const threatLevel = sizeDiff * sizeDiff * (600 / Math.max(dist, 30));
       threats.push({
         entity: otherNPC,
         type: 'npc',
@@ -326,7 +328,7 @@ function updateNPC(npc) {
         y: otherNPC.y,
       });
 
-      // Calculate escape direction
+      // Calculate escape direction - run AWAY from bigger NPC
       const dx = npc.x - otherNPC.x;
       const dy = npc.y - otherNPC.y;
       const escapeDist = Math.sqrt(dx * dx + dy * dy);
@@ -369,113 +371,118 @@ function updateNPC(npc) {
   // Find best prey (smaller players AND smaller NPCs that this NPC can eat)
   let bestPrey = null;
   let bestPreyScore = -Infinity;
+  let playerPrey = null; // Separate tracking for player prey
 
-  // Check players as prey
+  // Check players as prey - HIGHEST PRIORITY TARGET!
   Object.values(gameState.players).forEach((player) => {
     const playerPos = getPlayerMainPosition(player);
     const dist = distance(npc.x, npc.y, playerPos.x, playerPos.y);
-    const sizeDiff = npc.radius / (player.radius * 1.1); // Need to be 10% bigger
+    const sizeDiff = npc.radius / player.radius; // Direct size comparison
 
-    if (sizeDiff > 1 && dist < 500) {
+    // NPC is bigger than player - HUNT THEM! (reduced range to 400px)
+    if (sizeDiff > 1.03 && dist < 400) {
       // Predict player movement (simple prediction)
-      const playerSpeed = 5 / (player.radius / 15);
       const predictedX = playerPos.x + (playerPos.x - (player.x || playerPos.x)) * 0.5;
       const predictedY = playerPos.y + (playerPos.y - (player.y || playerPos.y)) * 0.5;
 
       const predictedDist = distance(npc.x, npc.y, predictedX, predictedY);
-      const preyValue = player.radius * 5; // Eating player = more valuable
-      const distancePenalty = predictedDist * 0.2;
-      const score = preyValue * npc.aggressionLevel - distancePenalty;
-
-      if (score > bestPreyScore && sizeDiff > 1.15) {
-        // Only chase if significantly bigger
-        bestPreyScore = score;
-        bestPrey = {
-          x: predictedX,
-          y: predictedY,
-          target: player,
-          type: 'player',
-          dist: predictedDist,
-        };
-      }
+      
+      // PLAYER IS ALWAYS TOP PRIORITY - store separately
+      playerPrey = {
+        x: predictedX,
+        y: predictedY,
+        target: player,
+        type: 'player',
+        dist: predictedDist,
+      };
     }
   });
 
-  // Check other NPCs as prey (NPC vs NPC competition!)
-  Object.values(gameState.npcs).forEach((otherNPC) => {
-    if (otherNPC.id === npc.id) return; // Skip self
-    
-    const dist = distance(npc.x, npc.y, otherNPC.x, otherNPC.y);
-    const sizeDiff = npc.radius / otherNPC.radius; // Direct size comparison
+  // If player is valid prey, ALWAYS prioritize player!
+  if (playerPrey) {
+    bestPrey = playerPrey;
+    bestPreyScore = 99999; // Very high score to ensure player is always chosen
+  }
 
-    if (sizeDiff > 1.05 && dist < 700) {
-      // NPCs actively hunt other NPCs (only need 5% bigger)
-      const preyValue = otherNPC.radius * 6; // Eating NPC = very valuable (more than player!)
-      const distancePenalty = dist * 0.1; // Less penalty for distance
-      const score = preyValue * npc.aggressionLevel - distancePenalty;
+  // Check other NPCs as prey - ONLY if no player prey available
+  if (!playerPrey) {
+    Object.values(gameState.npcs).forEach((otherNPC) => {
+      if (otherNPC.id === npc.id) return; // Skip self
+      
+      const dist = distance(npc.x, npc.y, otherNPC.x, otherNPC.y);
+      const sizeDiff = npc.radius / otherNPC.radius; // Direct size comparison
 
-      if (score > bestPreyScore && sizeDiff > 1.08) {
-        // Only need to be 8% bigger to hunt other NPCs (more aggressive)
-        bestPreyScore = score;
-        bestPrey = {
-          x: otherNPC.x,
-          y: otherNPC.y,
-          target: otherNPC,
-          type: 'npc',
-          dist: dist,
-        };
+      // NPC is bigger by 3% - HUNT THEM! (reduced range to 350px)
+      if (sizeDiff > 1.03 && dist < 350) {
+        const preyValue = otherNPC.radius * 10;
+        const distancePenalty = dist * 0.1;
+        const score = preyValue - distancePenalty;
+
+        if (score > bestPreyScore) {
+          bestPreyScore = score;
+          bestPrey = {
+            x: otherNPC.x,
+            y: otherNPC.y,
+            target: otherNPC,
+            type: 'npc',
+            dist: dist,
+          };
+        }
       }
-    }
-  });
+    });
+  }
 
   // Decision making with priority system
   let decisionMade = false;
 
-  // PRIORITY 1: Flee from immediate threats
-  if (nearestThreat && nearestThreat.dist < 250) {
-    const fleeDistance = 200 + npc.intelligenceLevel * 100;
-    const dx = npc.x - nearestThreat.x;
-    const dy = npc.y - nearestThreat.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
+  // PRIORITY 1: Flee from threats - balanced range
+  if (nearestThreat) {
+    // Reduced flee range so NPC can still focus on food
+    const fleeRange = 300;
+    
+    if (nearestThreat.dist < fleeRange) {
+      const fleeDistance = 300 + npc.intelligenceLevel * 150;
+      const dx = npc.x - nearestThreat.x;
+      const dy = npc.y - nearestThreat.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
 
-    if (dist > 0) {
-      targetX = npc.x + (dx / dist) * fleeDistance;
-      targetY = npc.y + (dy / dist) * fleeDistance;
-      decisionMade = true;
-      
-      // STRATEGIC SPLIT: Split to escape faster when being chased
-      if (npc.radius > 40 && nearestThreat.dist < 150 && Math.random() < 0.15) {
-        console.log(`💨 NPC ${npc.name} split to escape from ${nearestThreat.type}!`);
-        splitNPC(npc);
+      if (dist > 0) {
+        targetX = npc.x + (dx / dist) * fleeDistance;
+        targetY = npc.y + (dy / dist) * fleeDistance;
+        decisionMade = true;
+        
+        // Debug log for fleeing
+        if (Math.random() < 0.02) {
+          const threatName = nearestThreat.entity.name || 'Unknown';
+          console.log(`🏃💨 NPC ${npc.name} (${Math.floor(npc.radius)}px) FLEEING from ${nearestThreat.type.toUpperCase()} ${threatName} (${Math.floor(nearestThreat.entity.radius)}px) at distance ${Math.floor(nearestThreat.dist)}px`);
+        }
+        
+        // STRATEGIC SPLIT: Split to escape faster when being chased
+        if (npc.radius > 35 && nearestThreat.dist < 200 && Math.random() < 0.18) {
+          console.log(`💨 NPC ${npc.name} split to escape from ${nearestThreat.type}!`);
+          splitNPC(npc);
+        }
       }
     }
   }
 
-  // PRIORITY 2: Chase prey if safe and aggressive enough
+  // PRIORITY 2: Chase prey - ALWAYS chase if bigger (player OR NPC)!
   if (!decisionMade && bestPrey) {
-    // More aggressive hunting - chase even with some threats nearby
-    const minAggressionLevel = bestPrey.type === 'npc' ? 0.5 : 0.6; // Lower threshold for hunting NPCs
+    // ALWAYS chase prey - no aggression check needed for both player and NPC
+    targetX = bestPrey.x;
+    targetY = bestPrey.y;
+    decisionMade = true;
     
-    if (npc.aggressionLevel > minAggressionLevel) {
-      // Chase if no major threats OR if prey is very close
-      const safeDistance = bestPrey.type === 'npc' ? 300 : 350; // More willing to risk for NPC prey
-      
-      if (!nearestThreat || nearestThreat.dist > safeDistance || bestPrey.dist < 150) {
-        targetX = bestPrey.x;
-        targetY = bestPrey.y;
-        decisionMade = true;
-        
-        // STRATEGIC SPLIT: Split to chase prey faster (if prey is escaping)
-        if (npc.radius > 45 && bestPrey.dist > 200 && bestPrey.dist < 400 && Math.random() < 0.1) {
-          console.log(`🏃 NPC ${npc.name} split to chase ${bestPrey.type} faster!`);
-          splitNPC(npc);
-        }
-        
-        // Debug log for NPC hunting
-        if (bestPrey.type === 'npc' && Math.random() < 0.01) {
-          console.log(`🎯 NPC ${npc.name} (${Math.floor(npc.radius)}px) hunting NPC ${bestPrey.target.name} (${Math.floor(bestPrey.target.radius)}px) at distance ${Math.floor(bestPrey.dist)}px`);
-        }
-      }
+    // Debug log for hunting
+    if (Math.random() < 0.02) {
+      const targetName = bestPrey.target.name || 'Unknown';
+      console.log(`🎯 NPC ${npc.name} (${Math.floor(npc.radius)}px) HUNTING ${bestPrey.type.toUpperCase()} ${targetName} (${Math.floor(bestPrey.target.radius)}px) at distance ${Math.floor(bestPrey.dist)}px`);
+    }
+    
+    // STRATEGIC SPLIT: Split to chase prey faster
+    if (npc.radius > 40 && bestPrey.dist > 150 && bestPrey.dist < 350 && Math.random() < 0.12) {
+      console.log(`🏃 NPC ${npc.name} split to chase ${bestPrey.type} faster!`);
+      splitNPC(npc);
     }
   }
 

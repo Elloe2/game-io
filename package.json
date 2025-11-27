@@ -1,25 +1,58 @@
 {
-  "name": "agar-io-clone",
+  "name": "micro-io",
   "version": "1.0.0",
-  "description": "Multiplayer agar.io clone game",
-  "main": "server/index.js",
+  "description": "Micro.io - Game Bakteri vs Bakteri",
+  "main": "electron/main.js",
   "scripts": {
     "start": "node server/index.js",
-    "dev": "nodemon server/index.js"
+    "dev": "nodemon server/index.js",
+    "electron": "electron .",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win portable",
+    "build:dir": "electron-builder --dir"
   },
   "keywords": [
     "game",
     "multiplayer",
-    "agar.io",
-    "websocket"
+    "microbe",
+    "bacteria",
+    "electron"
   ],
-  "author": "",
+  "author": "Micro.io Team",
   "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
     "socket.io": "^4.6.1"
   },
   "devDependencies": {
+    "electron": "^39.2.4",
+    "electron-builder": "^26.0.12",
     "nodemon": "^3.0.1"
+  },
+  "build": {
+    "appId": "com.microio.game",
+    "productName": "Micro.io",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "client/**/*",
+      "server/**/*",
+      "electron/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "electron/icon.ico"
+    },
+    "portable": {
+      "artifactName": "Micro.io-Portable.exe"
+    }
   }
 }
