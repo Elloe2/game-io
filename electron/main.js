@@ -68,7 +68,7 @@ function startServer() {
       ];
 
       const foodTypes = ['air', 'enzim', 'daun'];
-      const npcTypes = ['virus', 'bacillus'];
+      const npcTypes = ['virus', 'bacillus', 'amoeba', 'sel'];
 
       // Helper functions
       function distance(x1, y1, x2, y2) {

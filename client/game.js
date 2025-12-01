@@ -45,6 +45,8 @@ const sprites = {
   player: new Image(),
   npcVirus: new Image(),
   npcBacillus: new Image(),
+  npcAmoeba: new Image(),
+  npcSel: new Image(),
   foodAir: new Image(),
   foodEnzim: new Image(),
   foodDaun: new Image(),
@@ -54,6 +56,8 @@ const sprites = {
 sprites.player.src = 'assets/Microba Alga.png';
 sprites.npcVirus.src = 'assets/Virus HIV.png';
 sprites.npcBacillus.src = 'assets/Bakteri Bacillus.png';
+sprites.npcAmoeba.src = 'assets/Amoeba.png';
+sprites.npcSel.src = 'assets/Sel.png';
 sprites.foodAir.src = 'assets/Air.png';
 sprites.foodEnzim.src = 'assets/Enzim.png';
 sprites.foodDaun.src = 'assets/Daun Mati.png';
@@ -568,7 +572,29 @@ function drawNPC(x, y, radius, npcType, playerRadius = 0, entityId = '') {
       pulseSpeed: 0.003,
       pulseOffset: idOffset
     });
+  } else if (npcType === 'amoeba') {
+    drawSprite(sprites.npcAmoeba, x, y, radius, 1.6, {
+      pulse: true,
+      pulseAmount: 0.1,
+      pulseSpeed: 0.002,
+      pulseOffset: idOffset,
+      float: true,
+      floatAmount: 4,
+      floatSpeed: 0.0015,
+      floatOffset: idOffset
+    });
+  } else if (npcType === 'sel') {
+    drawSprite(sprites.npcSel, x, y, radius, 1.5, {
+      rotate: true,
+      rotateSpeed: 0.0003,
+      rotateOffset: idOffset,
+      pulse: true,
+      pulseAmount: 0.04,
+      pulseSpeed: 0.005,
+      pulseOffset: idOffset
+    });
   } else {
+    // Default: virus
     drawSprite(sprites.npcVirus, x, y, radius, 2.1, {
       rotate: true,
       rotateSpeed: 0.001,

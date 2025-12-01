@@ -147,8 +147,8 @@ const npcNames = [
   'Amoeba', 'Paramecium', 'Euglena', 'Plasmodium', 'Giardia'
 ];
 
-// NPC types for sprites
-const npcTypes = ['virus', 'bacillus'];
+// NPC types for sprites (4 varieties)
+const npcTypes = ['virus', 'bacillus', 'amoeba', 'sel'];
 
 // NPC AI Logic - Enhanced with smarter behavior and competition
 function createNPC() {
