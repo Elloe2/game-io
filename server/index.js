@@ -682,14 +682,14 @@ function handleNPCEating(npc) {
             }, 100);
           }
         } else if (playerCell.radius > npcCell.radius * 1.03) {
-          // Player cell eats NPC cell
+          // Player cell eats NPC cell (reduced growth rate)
           const playerCellData = player.cells ? player.cells.find((c) => c.id === playerCell.id) : null;
           if (playerCellData) {
-            playerCellData.radius += npcCell.radius * 0.3;
+            playerCellData.radius += npcCell.radius * 0.15; // Reduced from 0.3
             playerCellData.score += Math.floor(npcCell.score / 2);
             updatePlayerStats(player);
           } else {
-            player.radius += npcCell.radius * 0.3;
+            player.radius += npcCell.radius * 0.15; // Reduced from 0.3
             player.score += Math.floor(npcCell.score / 2);
           }
 
@@ -1185,10 +1185,10 @@ function handlePlayerEating(player) {
         
         const cellData = player.cells ? player.cells.find((c) => c.id === cell.id) : null;
         if (cellData) {
-          cellData.radius += npc.radius * 0.3;
+          cellData.radius += npc.radius * 0.15; // Reduced from 0.3
           cellData.score += Math.floor(npc.score / 2);
         } else {
-          player.radius += npc.radius * 0.3;
+          player.radius += npc.radius * 0.15; // Reduced from 0.3
           player.score += Math.floor(npc.score / 2);
         }
         delete gameState.npcs[npc.id];
