@@ -78,20 +78,87 @@ const startScreen = document.getElementById('startScreen');
 const startBtn = document.getElementById('startBtn');
 const playerNameInput = document.getElementById('playerName');
 const gameOverScreen = document.getElementById('gameOverScreen');
+
 const playAgainBtn = document.getElementById('playAgainBtn');
+
+// Audio Manager
+const audioManager = {
+  bgm: new Audio('assets/audio/bgm.mp3'),
+  isMuted: false,
+  isPlaying: false,
+
+  init() {
+    this.bgm.loop = true;
+    this.bgm.volume = 0.5;
+
+    // Custom "Off" state initially if you want, or try to auto-play
+    // We try to autoplay, but if blocked, we wait for interaction
+    this.play();
+
+    // Add global click handler to unlock audio context if autoplay failed
+    document.addEventListener('click', () => {
+      if (!this.isPlaying && !this.isMuted) {
+        this.play();
+      }
+    }, { once: true });
+
+    // UI Control
+    const audioBtn = document.getElementById('audioControl');
+    if (audioBtn) {
+      const audioIcon = audioBtn.querySelector('.audio-icon');
+
+      audioBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent triggering the global unlock above redundantly
+        this.toggleMute(audioIcon);
+      });
+    }
+  },
+
+  play() {
+    if (this.isMuted) return;
+
+    this.bgm.play().then(() => {
+      this.isPlaying = true;
+      console.log('BGM playing');
+    }).catch(e => {
+      console.log('Autoplay blocked, waiting for interaction');
+    });
+  },
+
+  stop() {
+    this.bgm.pause();
+    this.isPlaying = false;
+  },
+
+  toggleMute(iconElement) {
+    this.isMuted = !this.isMuted;
+
+    if (this.isMuted) {
+      this.bgm.pause();
+      this.isPlaying = false;
+      if (iconElement) iconElement.textContent = '🔇';
+    } else {
+      this.play();
+      if (iconElement) iconElement.textContent = '🔊';
+    }
+  }
+};
+
+// Initialize Audio
+audioManager.init();
 
 // Loading Screen Animation
 function initLoadingScreen() {
   const loadingScreen = document.getElementById('loadingScreen');
   const loaderProgress = document.getElementById('loaderProgress');
-  
+
   let progress = 0;
   const loadInterval = setInterval(() => {
     progress += Math.random() * 15;
     if (progress >= 100) {
       progress = 100;
       clearInterval(loadInterval);
-      
+
       // Hide loading screen with animation
       gsap.to(loadingScreen, {
         opacity: 0,
@@ -115,17 +182,17 @@ function initMenuAnimations() {
   const subtitle = document.querySelector('.subtitle');
   const heroVisual = document.querySelector('.hero-visual');
   const scrollIndicator = document.querySelector('.scroll-indicator');
-  
+
   // Initial state
   gsap.set(titleLines, { opacity: 0, y: 50 });
   gsap.set(titleDot, { opacity: 0, scale: 0 });
   gsap.set(subtitle, { opacity: 0, y: 20 });
   gsap.set(heroVisual, { opacity: 0, scale: 0.8 });
   gsap.set(scrollIndicator, { opacity: 0 });
-  
+
   // Timeline for hero section
   const tl = gsap.timeline({ delay: 0.3 });
-  
+
   // Title lines animate in
   tl.to(titleLines, {
     opacity: 1,
@@ -134,7 +201,7 @@ function initMenuAnimations() {
     stagger: 0.1,
     ease: 'power3.out'
   });
-  
+
   // Dot pops in
   tl.to(titleDot, {
     opacity: 1,
@@ -142,7 +209,7 @@ function initMenuAnimations() {
     duration: 0.4,
     ease: 'back.out(2)'
   }, '-=0.5');
-  
+
   // Subtitle fades in
   tl.to(subtitle, {
     opacity: 1,
@@ -150,7 +217,7 @@ function initMenuAnimations() {
     duration: 0.5,
     ease: 'power2.out'
   }, '-=0.3');
-  
+
   // Hero visual scales in
   tl.to(heroVisual, {
     opacity: 1,
@@ -158,13 +225,13 @@ function initMenuAnimations() {
     duration: 0.8,
     ease: 'power2.out'
   }, '-=0.3');
-  
+
   // Scroll indicator fades in
   tl.to(scrollIndicator, {
     opacity: 1,
     duration: 0.5
   }, '-=0.2');
-  
+
   // Play section animations on scroll
   initScrollAnimations();
 }
@@ -177,26 +244,26 @@ function initScrollAnimations() {
   const playForm = document.querySelector('.play-form');
   const foodPreview = document.querySelector('.food-preview');
   const instructionsBar = document.querySelector('.instructions-bar');
-  
+
   // Initial state for play section elements
-  gsap.set([sectionHeading, characterSelect, playForm, foodPreview, instructionsBar], { 
-    opacity: 0, 
-    y: 50 
+  gsap.set([sectionHeading, characterSelect, playForm, foodPreview, instructionsBar], {
+    opacity: 0,
+    y: 50
   });
-  
+
   // Create scroll trigger
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         const tl = gsap.timeline();
-        
+
         tl.to(sectionHeading, {
           opacity: 1,
           y: 0,
           duration: 0.6,
           ease: 'power2.out'
         });
-        
+
         tl.to([characterSelect, playForm, foodPreview], {
           opacity: 1,
           y: 0,
@@ -204,19 +271,19 @@ function initScrollAnimations() {
           stagger: 0.15,
           ease: 'power2.out'
         }, '-=0.3');
-        
+
         tl.to(instructionsBar, {
           opacity: 1,
           y: 0,
           duration: 0.5,
           ease: 'power2.out'
         }, '-=0.2');
-        
+
         observer.disconnect();
       }
     });
   }, { threshold: 0.3 });
-  
+
   observer.observe(playSection);
 }
 
@@ -226,22 +293,22 @@ function showGameOverAnimation() {
   const popup = document.querySelector('.game-over-popup');
   const statCards = document.querySelectorAll('.stat-card');
   const actionBtns = document.querySelectorAll('.action-btn');
-  
+
   // Initial state
   gsap.set(gameOverBg, { opacity: 0 });
   gsap.set(popup, { scale: 0.8, opacity: 0, y: 50 });
   gsap.set(statCards, { opacity: 0, y: 30, scale: 0.9 });
   gsap.set(actionBtns, { opacity: 0, y: 20 });
-  
+
   // Animation timeline
   const tl = gsap.timeline();
-  
+
   // Background fades in
   tl.to(gameOverBg, {
     opacity: 1,
     duration: 0.3
   });
-  
+
   // Popup scales in
   tl.to(popup, {
     scale: 1,
@@ -250,7 +317,7 @@ function showGameOverAnimation() {
     duration: 0.5,
     ease: 'back.out(1.7)'
   }, '-=0.1');
-  
+
   // Stat cards stagger in
   tl.to(statCards, {
     opacity: 1,
@@ -260,7 +327,7 @@ function showGameOverAnimation() {
     stagger: 0.1,
     ease: 'power2.out'
   }, '-=0.2');
-  
+
   // Action buttons slide in
   tl.to(actionBtns, {
     opacity: 1,
@@ -276,10 +343,10 @@ document.addEventListener('DOMContentLoaded', initLoadingScreen);
 
 startBtn.addEventListener('click', () => {
   playerName = playerNameInput.value || `Bakteri${Math.floor(Math.random() * 1000)}`;
-  
+
   // Send startGame event to server - this creates the player
   socket.emit('startGame', { name: playerName });
-  
+
   // GSAP exit animation for start screen
   gsap.to(startScreen, {
     opacity: 0,
@@ -289,16 +356,16 @@ startBtn.addEventListener('click', () => {
     onComplete: () => {
       startScreen.classList.add('hidden');
       gsap.set(startScreen, { opacity: 1, scale: 1 }); // Reset for potential replay
-      
+
       // Animate leaderboard sliding in
       const leaderboard = document.querySelector('.leaderboard');
-      gsap.fromTo(leaderboard, 
+      gsap.fromTo(leaderboard,
         { x: 100, opacity: 0 },
         { x: 0, opacity: 1, duration: 0.6, ease: 'power2.out' }
       );
     }
   });
-  
+
   gameStarted = true;
 });
 
@@ -361,20 +428,20 @@ socket.on('eaten', (data) => {
   gameOverScreen.classList.remove('hidden');
   const finalScore = data.score || 0;
   document.getElementById('finalScore').textContent = finalScore;
-  
+
   // Update high score
   if (finalScore > highScoreValue) {
     highScoreValue = finalScore;
   }
   document.getElementById('highScore').textContent = highScoreValue;
-  
+
   // Calculate position (simplified - based on leaderboard)
   const position = data.position || '-';
   document.getElementById('topPosition').textContent = position;
-  
+
   // Trigger GSAP game over animation
   showGameOverAnimation();
-  
+
   gameStarted = false;
 
   // Clear game state when player dies
@@ -397,7 +464,7 @@ socket.on('highscores', (data) => {
 socket.on('disconnect', () => {
   console.log('Disconnected from server');
   gameStarted = false;
-  
+
   // Clear all game state
   gameState.players = {};
   gameState.npcs = {};
@@ -498,43 +565,43 @@ let animationTime = 0;
 function drawSprite(sprite, x, y, radius, scale = 1.0, animOptions = {}) {
   if (sprite && sprite.complete && sprite.naturalWidth > 0) {
     const drawSize = radius * 2 * scale;
-    
+
     ctx.save();
     ctx.translate(x, y);
-    
+
     // Apply animations based on options
     if (animOptions.rotate) {
       const rotationSpeed = animOptions.rotateSpeed || 0.001;
       ctx.rotate(animationTime * rotationSpeed + (animOptions.rotateOffset || 0));
     }
-    
+
     if (animOptions.pulse) {
       const pulseAmount = animOptions.pulseAmount || 0.05;
       const pulseSpeed = animOptions.pulseSpeed || 0.003;
       const pulseFactor = 1 + Math.sin(animationTime * pulseSpeed + (animOptions.pulseOffset || 0)) * pulseAmount;
       ctx.scale(pulseFactor, pulseFactor);
     }
-    
+
     if (animOptions.float) {
       const floatAmount = animOptions.floatAmount || 3;
       const floatSpeed = animOptions.floatSpeed || 0.002;
       const floatY = Math.sin(animationTime * floatSpeed + (animOptions.floatOffset || 0)) * floatAmount;
       ctx.translate(0, floatY);
     }
-    
+
     // Draw the sprite centered
-    ctx.drawImage(sprite, -drawSize/2, -drawSize/2, drawSize, drawSize);
-    
+    ctx.drawImage(sprite, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
+
     // Add glow effect if specified
     if (animOptions.glow) {
       ctx.globalAlpha = 0.3 + Math.sin(animationTime * 0.003) * 0.2;
       ctx.shadowColor = animOptions.glowColor || '#00f0ff';
       ctx.shadowBlur = animOptions.glowSize || 15;
-      ctx.drawImage(sprite, -drawSize/2, -drawSize/2, drawSize, drawSize);
+      ctx.drawImage(sprite, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
       ctx.shadowBlur = 0;
       ctx.globalAlpha = 1;
     }
-    
+
     ctx.restore();
   } else {
     // Fallback to circle if sprite not loaded
@@ -561,7 +628,7 @@ function drawPlayer(x, y, radius) {
 function drawNPC(x, y, radius, npcType, playerRadius = 0, entityId = '') {
   // Use entity ID to create unique animation offset
   const idOffset = entityId ? entityId.charCodeAt(0) * 100 : Math.random() * 1000;
-  
+
   if (npcType === 'bacillus') {
     drawSprite(sprites.npcBacillus, x, y, radius, 1.8, {
       rotate: true,
@@ -605,13 +672,13 @@ function drawNPC(x, y, radius, npcType, playerRadius = 0, entityId = '') {
       pulseOffset: idOffset
     });
   }
-  
+
   // Draw indicator based on size comparison with player
   // GREEN = you can eat this NPC (player is bigger)
   // RED = this NPC can eat you (NPC is bigger)
   if (playerRadius > 0) {
     const playerToNpcRatio = playerRadius / radius; // How much bigger is player?
-    
+
     if (playerToNpcRatio > 1.03) {
       // Player is bigger - GREEN (you CAN eat this NPC!)
       const pulseAlpha = 0.5 + Math.sin(animationTime * 0.006) * 0.3;
@@ -637,10 +704,10 @@ function drawNPC(x, y, radius, npcType, playerRadius = 0, entityId = '') {
 function drawFood(x, y, radius, foodType, foodId = '') {
   let sprite;
   let glowColor;
-  
+
   // Use food ID for unique animation offset
   const idOffset = foodId ? (typeof foodId === 'number' ? foodId : foodId.toString().charCodeAt(0)) * 50 : Math.random() * 500;
-  
+
   switch (foodType) {
     case 'air':
       sprite = sprites.foodAir;
@@ -658,7 +725,7 @@ function drawFood(x, y, radius, foodType, foodId = '') {
       sprite = sprites.foodAir;
       glowColor = '#00d4ff';
   }
-  
+
   drawSprite(sprite, x, y, radius, 3.0, {
     float: true,
     floatAmount: 2,
@@ -691,7 +758,7 @@ function lerp(start, end, factor) {
 function interpolatePositions() {
   // Don't interpolate if game hasn't started
   if (!gameStarted) return;
-  
+
   const now = Date.now();
   const timeSinceUpdate = now - lastUpdateTime;
   const updateInterval = 33; // Match server update rate
@@ -848,7 +915,7 @@ function render() {
 
   // Interpolate positions for smooth movement
   interpolatePositions();
-  
+
   // Update animation time
   animationTime = Date.now();
 
@@ -878,8 +945,8 @@ function render() {
     const screenX = food.x - gameState.camera.x;
     const screenY = food.y - gameState.camera.y;
 
-    if (screenX > -food.radius * 3 && screenX < canvas.width + food.radius * 3 && 
-        screenY > -food.radius * 3 && screenY < canvas.height + food.radius * 3) {
+    if (screenX > -food.radius * 3 && screenX < canvas.width + food.radius * 3 &&
+      screenY > -food.radius * 3 && screenY < canvas.height + food.radius * 3) {
       drawFood(screenX, screenY, food.radius, food.foodType || 'air', food.id);
     }
   });
@@ -900,7 +967,7 @@ function render() {
   Object.values(interpolatedState.npcs).forEach((npc) => {
     // Determine NPC type for sprite selection
     const npcType = npc.npcType || 'virus';
-    
+
     // Draw all cells of the NPC (if split)
     if (npc.cells && npc.cells.length > 0) {
       // Find largest cell for name display
@@ -916,8 +983,8 @@ function render() {
         const screenX = cell.x - gameState.camera.x;
         const screenY = cell.y - gameState.camera.y;
 
-        if (screenX > -cell.radius * 2 && screenX < canvas.width + cell.radius * 2 && 
-            screenY > -cell.radius * 2 && screenY < canvas.height + cell.radius * 2) {
+        if (screenX > -cell.radius * 2 && screenX < canvas.width + cell.radius * 2 &&
+          screenY > -cell.radius * 2 && screenY < canvas.height + cell.radius * 2) {
           // Draw NPC cell with sprite, size indicator, and animation
           drawNPC(screenX, screenY, cell.radius, npcType, myPlayerRadius, npc.id);
         }
@@ -935,8 +1002,8 @@ function render() {
       const screenX = npc.x - gameState.camera.x;
       const screenY = npc.y - gameState.camera.y;
 
-      if (screenX > -npc.radius * 2 && screenX < canvas.width + npc.radius * 2 && 
-          screenY > -npc.radius * 2 && screenY < canvas.height + npc.radius * 2) {
+      if (screenX > -npc.radius * 2 && screenX < canvas.width + npc.radius * 2 &&
+        screenY > -npc.radius * 2 && screenY < canvas.height + npc.radius * 2) {
         // Draw NPC with sprite, size indicator, and animation
         drawNPC(screenX, screenY, npc.radius, npcType, myPlayerRadius, npc.id);
 
@@ -969,8 +1036,8 @@ function render() {
         const screenX = cell.x - gameState.camera.x;
         const screenY = cell.y - gameState.camera.y;
 
-        if (screenX > -cell.radius * 2 && screenX < canvas.width + cell.radius * 2 && 
-            screenY > -cell.radius * 2 && screenY < canvas.height + cell.radius * 2) {
+        if (screenX > -cell.radius * 2 && screenX < canvas.width + cell.radius * 2 &&
+          screenY > -cell.radius * 2 && screenY < canvas.height + cell.radius * 2) {
           // Draw player cell with sprite
           drawPlayer(screenX, screenY, cell.radius);
 
@@ -995,8 +1062,8 @@ function render() {
       const screenX = player.x - gameState.camera.x;
       const screenY = player.y - gameState.camera.y;
 
-      if (screenX > -player.radius * 2 && screenX < canvas.width + player.radius * 2 && 
-          screenY > -player.radius * 2 && screenY < canvas.height + player.radius * 2) {
+      if (screenX > -player.radius * 2 && screenX < canvas.width + player.radius * 2 &&
+        screenY > -player.radius * 2 && screenY < canvas.height + player.radius * 2) {
         // Draw player with sprite
         drawPlayer(screenX, screenY, player.radius);
 

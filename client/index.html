@@ -1,55 +1,64 @@
 <!DOCTYPE html>
 <html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MICRO.IO - Bakteri vs Bakteri</title>
-    <link rel="stylesheet" href="style.css" />
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- GSAP Animation Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-  </head>
-  <body>
-    <!-- Loading Screen -->
-    <div class="loading-screen" id="loadingScreen">
-      <div class="loader-content">
-        <div class="loader-microbes">
-          <img src="assets/Microba Alga.png" alt="" class="loader-microbe m1">
-          <img src="assets/Virus HIV.png" alt="" class="loader-microbe m2">
-          <img src="assets/Bakteri Bacillus.png" alt="" class="loader-microbe m3">
-        </div>
-        <div class="loader-text">
-          <span>L</span><span>O</span><span>A</span><span>D</span><span>I</span><span>N</span><span>G</span>
-        </div>
-        <div class="loader-bar">
-          <div class="loader-progress" id="loaderProgress"></div>
-        </div>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MICRO.IO - Bakteri vs Bakteri</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <!-- GSAP Animation Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+</head>
+
+<body>
+  <!-- Loading Screen -->
+  <div class="loading-screen" id="loadingScreen">
+    <div class="loader-content">
+      <div class="loader-microbes">
+        <img src="assets/Microba Alga.png" alt="" class="loader-microbe m1">
+        <img src="assets/Virus HIV.png" alt="" class="loader-microbe m2">
+        <img src="assets/Bakteri Bacillus.png" alt="" class="loader-microbe m3">
+      </div>
+      <div class="loader-text">
+        <span>L</span><span>O</span><span>A</span><span>D</span><span>I</span><span>N</span><span>G</span>
+      </div>
+      <div class="loader-bar">
+        <div class="loader-progress" id="loaderProgress"></div>
       </div>
     </div>
+  </div>
 
-    <div class="game-container">
-      <!-- Floating Background Particles -->
-      <div class="particles-bg" id="particlesBg"></div>
-      
-      <div class="ui-overlay">
-        <!-- Leaderboard ribbon style -->
-        <div class="leaderboard" id="leaderboard">
-          <div class="leaderboard-header">
-            <span class="leaderboard-title">LEADERBOARD</span>
-          </div>
-          <div id="leaderboard-list"></div>
+  <div class="game-container">
+    <!-- Floating Background Particles -->
+    <div class="particles-bg" id="particlesBg"></div>
+
+    <!-- Global Audio Control (Visible in Menu & Game) -->
+    <div class="audio-control" id="audioControl">
+      <span class="audio-icon">🔊</span>
+    </div>
+
+    <div class="ui-overlay">
+      <!-- Leaderboard ribbon style -->
+      <div class="leaderboard" id="leaderboard">
+        <div class="leaderboard-header">
+          <span class="leaderboard-title">LEADERBOARD</span>
         </div>
+        <div id="leaderboard-list"></div>
       </div>
-      <canvas id="gameCanvas"></canvas>
-      
-      <!-- Start Screen / Main Menu - Modern Redesign -->
-      <div class="start-screen" id="startScreen">
-        <!-- Scroll Content Wrapper -->
-        <div class="start-screen-content">
+    </div>
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Start Screen / Main Menu - Modern Redesign -->
+    <div class="start-screen" id="startScreen">
+      <!-- Scroll Content Wrapper -->
+      <div class="start-screen-content">
         <!-- Animated Background -->
         <div class="menu-bg">
           <div class="floating-microbes">
@@ -64,7 +73,7 @@
           </div>
           <div class="gradient-overlay"></div>
         </div>
-        
+
         <!-- Hero Section -->
         <section class="hero-section">
           <div class="hero-content">
@@ -76,7 +85,7 @@
               </h1>
               <p class="subtitle">SURVIVE THE MICROSCOPIC WORLD</p>
             </div>
-            
+
             <div class="hero-visual">
               <div class="hero-microbe-container">
                 <img src="assets/Microba Alga.png" alt="Player" class="hero-microbe main-hero">
@@ -89,44 +98,46 @@
               </div>
             </div>
           </div>
-          
+
           <div class="scroll-indicator">
             <span>SCROLL TO PLAY</span>
             <div class="scroll-arrow"></div>
           </div>
         </section>
-        
+
         <!-- Play Section -->
         <section class="play-section" id="playSection">
           <div class="section-content">
             <h2 class="section-heading">ENTER THE ARENA</h2>
-            
+
             <div class="play-container">
               <!-- Character Selection -->
               <div class="character-select">
                 <h3 class="select-label">YOUR MICROBE</h3>
                 <div class="character-showcase">
                   <div class="character-glow-ring"></div>
-                  <img src="assets/Microba Alga.png" alt="Microba Alga" class="showcase-character" id="selectedCharacter">
+                  <img src="assets/Microba Alga.png" alt="Microba Alga" class="showcase-character"
+                    id="selectedCharacter">
                 </div>
                 <p class="character-name">MICROBA ALGA</p>
               </div>
-              
+
               <!-- Input & Play -->
               <div class="play-form">
                 <div class="input-group">
                   <label class="input-label">ENTER YOUR NAME</label>
-                  <input type="text" id="playerName" class="modern-input" placeholder="PLAYER_001" maxlength="15" autocomplete="off">
+                  <input type="text" id="playerName" class="modern-input" placeholder="PLAYER_001" maxlength="15"
+                    autocomplete="off">
                   <div class="input-line"></div>
                 </div>
-                
+
                 <button id="startBtn" class="play-button">
                   <span class="btn-text">START GAME</span>
                   <span class="btn-icon">▶</span>
                   <div class="btn-glow"></div>
                 </button>
               </div>
-              
+
               <!-- Food Preview -->
               <div class="food-preview">
                 <h3 class="select-label">COLLECT TO GROW</h3>
@@ -146,7 +157,7 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- Instructions -->
             <div class="instructions-bar">
               <div class="instruction">
@@ -168,54 +179,55 @@
             </div>
           </div>
         </section>
-        </div><!-- end start-screen-content -->
-      </div>
-      
-      <!-- Game Over Screen - Modern -->
-      <div class="game-over-screen hidden" id="gameOverScreen">
-        <div class="game-over-bg"></div>
-        <div class="game-over-popup">
-          <div class="popup-header">
-            <h2 class="popup-title">GAME OVER</h2>
-            <div class="popup-subtitle">YOU WERE CONSUMED</div>
-          </div>
-          
-          <div class="popup-stats">
-            <div class="stat-card">
-              <div class="stat-icon">🏆</div>
-              <div class="stat-info">
-                <span class="stat-value" id="finalScore">0</span>
-                <span class="stat-label">POINTS</span>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-icon">⭐</div>
-              <div class="stat-info">
-                <span class="stat-value" id="highScore">0</span>
-                <span class="stat-label">BEST</span>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-icon">📊</div>
-              <div class="stat-info">
-                <span class="stat-value" id="topPosition">-</span>
-                <span class="stat-label">RANK</span>
-              </div>
+      </div><!-- end start-screen-content -->
+    </div>
+
+    <!-- Game Over Screen - Modern -->
+    <div class="game-over-screen hidden" id="gameOverScreen">
+      <div class="game-over-bg"></div>
+      <div class="game-over-popup">
+        <div class="popup-header">
+          <h2 class="popup-title">GAME OVER</h2>
+          <div class="popup-subtitle">YOU WERE CONSUMED</div>
+        </div>
+
+        <div class="popup-stats">
+          <div class="stat-card">
+            <div class="stat-icon">🏆</div>
+            <div class="stat-info">
+              <span class="stat-value" id="finalScore">0</span>
+              <span class="stat-label">POINTS</span>
             </div>
           </div>
-          
-          <div class="popup-actions">
-            <button id="playAgainBtn" class="action-btn primary">
-              <span>PLAY AGAIN</span>
-            </button>
-            <button id="homeBtn" class="action-btn secondary">
-              <span>MAIN MENU</span>
-            </button>
+          <div class="stat-card">
+            <div class="stat-icon">⭐</div>
+            <div class="stat-info">
+              <span class="stat-value" id="highScore">0</span>
+              <span class="stat-label">BEST</span>
+            </div>
           </div>
+          <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-info">
+              <span class="stat-value" id="topPosition">-</span>
+              <span class="stat-label">RANK</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="popup-actions">
+          <button id="playAgainBtn" class="action-btn primary">
+            <span>PLAY AGAIN</span>
+          </button>
+          <button id="homeBtn" class="action-btn secondary">
+            <span>MAIN MENU</span>
+          </button>
         </div>
       </div>
     </div>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="game.js"></script>
-  </body>
+  </div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="game.js"></script>
+</body>
+
 </html>
